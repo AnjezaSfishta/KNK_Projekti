@@ -9,8 +9,8 @@ module Library.Management {
     requires javafx.base;
 
 
-    opens application to javafx.graphics, javafx.fxml, javafx.base ;
-    opens controllers to javafx.fxml, javafx.graphics, databaseHandler, javafx.base,   java.sql;
-    opens repositories to javafx.graphics, javafx, java.sql;
-    //opens processors to javafx.fxml, javafx.graphics, databaseHandler, javafx.base,   java.sql;
+    opens application;
+    opens controllers;
+    opens repositories; 
+    
 }
