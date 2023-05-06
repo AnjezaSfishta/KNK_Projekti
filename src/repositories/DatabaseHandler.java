@@ -13,6 +13,8 @@ public class DatabaseHandler {
     public DatabaseHandler() {
         createConnection();
         setupBookTable();
+        setupAddMemberTable();
+        setupIssuedBooksTable();
     }
 
     void createConnection() {
@@ -57,5 +59,82 @@ public class DatabaseHandler {
             System.err.println(e.getMessage() + "---setup");
         }
     }
+    void setupAddMemberTable() {
+        String table_name = "addMember";
+        try {
+            stmt = conn.createStatement();
+
+            DatabaseMetaData dmb = conn.getMetaData();
+            ResultSet tables = dmb.getTables(null, null,  table_name.toUpperCase(), null);
+
+            if(tables.next()) {
+                System.out.println("database responded");
+            } else {
+                stmt.execute("CREATE TABLE " + table_name + " (\n"
+                        + "Memberid VARCHAR(200) NOT NULL,\n"
+                        + "name VARCHAR(200) NOT NULL,\n"
+                        + "email VARCHAR(200) NOT NULL,\n"
+                        + "phone VARCHAR(200) NOT NULL,\n"
+                        + "gender ENUM('female', 'male') NOT NULL,\n"
+                        + "PRIMARY KEY (Memberid)\n"
+                        + ");");
+            }
+        } catch(SQLException e) {
+            System.err.println(e.getMessage() + "---setupAddMemberTable");
+        }
+    }
+
+    void setupUserAccountTable() {
+        String table_name = "userAccount";
+        try {
+            stmt = conn.createStatement();
+
+            DatabaseMetaData dmb = conn.getMetaData();
+            ResultSet tables = dmb.getTables(null, null, table_name.toUpperCase(), null);
+
+            if(tables.next()) {
+                System.out.println("database responded");
+            } else {
+                stmt.execute("CREATE TABLE " + table_name + " (\n"
+                        + "idUserAccount INT UNSIGNED NOT NULL AUTO_INCREMENT,\n"
+                        + "firstName VARCHAR(200) NOT NULL,\n"
+                        + "lastName VARCHAR(200) NOT NULL,\n"
+                        + "userName VARCHAR(200) NOT NULL,\n"
+                        + "password VARCHAR(200) NOT NULL,\n"
+                        + "PRIMARY KEY (idUserAccount)\n"
+                        + ");");
+            }
+        } catch(SQLException e) {
+            System.err.println(e.getMessage() + "---setupUserAccountTable");
+        }
+    }
+
+    public void setupIssuedBooksTable() {
+        String table_name = "issuedBooks";
+        try {
+            stmt = conn.createStatement();
+
+            DatabaseMetaData dmb = conn.getMetaData();
+            ResultSet tables = dmb.getTables(null, null,  table_name.toUpperCase(), null);
+
+            if(tables.next()) {
+                System.out.println("database responded");
+            } else {
+                stmt.execute("CREATE TABLE " + table_name + " (\n"
+                        + "bookID VARCHAR(200) NOT NULL,\n"
+                        + "memberID VARCHAR(200) NOT NULL,\n"
+                        + "issueTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n"
+                        + "renew_count INTEGER DEFAULT 0,\n"
+                        + "PRIMARY KEY (bookID, memberID),\n"
+                        + "FOREIGN KEY (bookID) REFERENCES addBook(Bookid),\n"
+                        + "FOREIGN KEY (memberID) REFERENCES addMember(Memberid)\n"
+                        + ");");
+            }
+        } catch(SQLException e) {
+            System.err.println(e.getMessage() + "---setupIssuedBooksTable");
+        }
+    }
+
+
 }
 
