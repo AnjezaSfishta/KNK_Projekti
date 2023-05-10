@@ -1,5 +1,9 @@
 package repositories;
+import controllers.addBookController;
+
 import java.sql.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DatabaseHandler {
     private static final String databaseName = "admin";
@@ -10,11 +14,18 @@ public class DatabaseHandler {
     private static Connection conn = null;
     private static Statement stmt = null;
 
-    public DatabaseHandler() {
+    private DatabaseHandler() {
         createConnection();
         setupBookTable();
-        setupAddMemberTable();
+        setupMemberTable();
         setupIssuedBooksTable();
+    }
+
+    public static DatabaseHandler getInstance() {
+        if (handler == null) {
+            handler = new DatabaseHandler();
+        }
+        return handler;
     }
 
     void createConnection() {
@@ -32,7 +43,7 @@ public class DatabaseHandler {
     }
 
     void setupBookTable() {
-        String table_name = "addbook";
+        String table_name = "BOOK";
         try {
             stmt = conn.createStatement();
 
@@ -44,13 +55,13 @@ public class DatabaseHandler {
             }
             else {
                 stmt.execute("Create Table " + table_name + "(\r\n"
-                        + "Bookid varchar(200) not null,\n"
+                        + "bookId varchar(200) not null,\n"
                         + "title varchar(200) not null,\n"
                         + "author varchar(200) not null,\n"
                         + "publisher varchar(200) not null,\n"
-                        + "quantity int not null,\n"
+                        //+ "quantity int not null,\n"
                         + "isAvail boolean default true,\n"
-                        + "primary key(Bookid) );\n"
+                        + "primary key(bookId) );\n"
                 );
                 System.out.println("Table " + table_name + " created.");
 
@@ -59,8 +70,24 @@ public class DatabaseHandler {
             System.err.println(e.getMessage() + "---setup");
         }
     }
-    void setupAddMemberTable() {
-        String table_name = "addMember";
+
+    public boolean deleteBook(models.Book book) {
+        try {
+            String deleteStatement = "DELETE FROM BOOK WHERE bookId  = ?";
+            PreparedStatement stmt = conn.prepareStatement(deleteStatement);
+            stmt.setString(1, book.getBookID());
+            int res = stmt.executeUpdate();
+            if (res == 1) {
+                return true;
+            }
+        } catch (SQLException ex) {
+            System.out.println("Nuk mundemi me fshi nje liber qe vetem e ka marr dikush, dhe nuk e ka kthy ende!");
+        }
+        return false;
+    }
+
+    void setupMemberTable() {
+        String table_name = "MEMBER";
         try {
             stmt = conn.createStatement();
 
@@ -68,15 +95,15 @@ public class DatabaseHandler {
             ResultSet tables = dmb.getTables(null, null,  table_name.toUpperCase(), null);
 
             if(tables.next()) {
-                System.out.println("database responded");
+                System.out.println("Table " + table_name + " already exists.");
             } else {
                 stmt.execute("CREATE TABLE " + table_name + " (\n"
-                        + "Memberid VARCHAR(200) NOT NULL,\n"
+                        + "memberId VARCHAR(200) NOT NULL,\n"
                         + "name VARCHAR(200) NOT NULL,\n"
-                        + "email VARCHAR(200) NOT NULL,\n"
                         + "phone VARCHAR(200) NOT NULL,\n"
-                        + "gender ENUM('female', 'male') NOT NULL,\n"
-                        + "PRIMARY KEY (Memberid)\n"
+                        + "email VARCHAR(200) NOT NULL,\n"
+                        //+ "gender ENUM('female', 'male') NOT NULL,\n"
+                        + "PRIMARY KEY (memberid)\n"
                         + ");");
             }
         } catch(SQLException e) {
@@ -84,33 +111,88 @@ public class DatabaseHandler {
         }
     }
 
-    void setupUserAccountTable() {
-        String table_name = "userAccount";
+    public boolean deleteMember(models.Member member) {
         try {
-            stmt = conn.createStatement();
-
-            DatabaseMetaData dmb = conn.getMetaData();
-            ResultSet tables = dmb.getTables(null, null, table_name.toUpperCase(), null);
-
-            if(tables.next()) {
-                System.out.println("database responded");
-            } else {
-                stmt.execute("CREATE TABLE " + table_name + " (\n"
-                        + "idUserAccount INT UNSIGNED NOT NULL AUTO_INCREMENT,\n"
-                        + "firstName VARCHAR(200) NOT NULL,\n"
-                        + "lastName VARCHAR(200) NOT NULL,\n"
-                        + "userName VARCHAR(200) NOT NULL,\n"
-                        + "password VARCHAR(200) NOT NULL,\n"
-                        + "PRIMARY KEY (idUserAccount)\n"
-                        + ");");
+            String deleteStatement = "DELETE FROM MEMBER where memberId = ?";
+            PreparedStatement stmt = conn.prepareStatement(deleteStatement);
+            stmt.setString(1, member.getMemberID());
+            int res = stmt.executeUpdate();
+            if (res == 1) {
+                return true;
             }
-        } catch(SQLException e) {
-            System.err.println(e.getMessage() + "---setupUserAccountTable");
+        } catch (SQLException ex) {
+            System.out.println("Nuk mundemi me fshi nje liber qe vetem e ka marr dikush, dhe nuk e ka kthy ende!");
         }
+        return false;
+    }
+
+
+//    void setupUserAccountTable() {
+//        String table_name = "userAccount";
+//        try {
+//            stmt = conn.createStatement();
+//
+//            DatabaseMetaData dmb = conn.getMetaData();
+//            ResultSet tables = dmb.getTables(null, null, table_name.toUpperCase(), null);
+//
+//            if(tables.next()) {
+//                System.out.println("Table " + table_name + " already exists.");
+//            } else {
+//                stmt.execute("CREATE TABLE " + table_name + " (\n"
+//                        + "idUserAccount INT UNSIGNED NOT NULL AUTO_INCREMENT,\n"
+//                        + "firstName VARCHAR(200) NOT NULL,\n"
+//                        + "lastName VARCHAR(200) NOT NULL,\n"
+//                        + "userName VARCHAR(200) NOT NULL,\n"
+//                        + "password VARCHAR(200) NOT NULL,\n"
+//                        + "PRIMARY KEY (idUserAccount)\n"
+//                        + ");");
+//            }
+//        } catch(SQLException e) {
+//            System.err.println(e.getMessage() + "---setupUserAccountTable");
+//        }
+//    }
+
+    public boolean updateMember(models.Member member) {
+        String update = "UPDATE MEMBER SET name =? , email = ? , phone = ? WHERE memberId = ?";
+        try {
+            PreparedStatement stmt = conn.prepareStatement(update);
+            stmt.setString(1, member.getName());
+            stmt.setString(2, member.getEmail());
+            stmt.setString(3, member.getPhone());
+            stmt.setString(4, member.getMemberID());
+
+
+            int res = stmt.executeUpdate();
+
+            return (res > 0);
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return false;
+    }
+    public boolean updateBook(models.Book book) {
+        String update = "UPDATE BOOK SET title =? , author = ? , publisher = ?  WHERE bookId = ?";
+        try {
+            PreparedStatement stmt = conn.prepareStatement(update);
+            stmt.setString(1, book.getTitle());
+            stmt.setString(2, book.getAuthor());
+            stmt.setString(3, book.getPublisher());
+            stmt.setString(4, book.getBookID());
+
+
+            int res = stmt.executeUpdate();
+
+            return (res > 0);
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return false;
     }
 
     public void setupIssuedBooksTable() {
-        String table_name = "issuedBooks";
+        String table_name = "ISSUE";
         try {
             stmt = conn.createStatement();
 
@@ -118,16 +200,16 @@ public class DatabaseHandler {
             ResultSet tables = dmb.getTables(null, null,  table_name.toUpperCase(), null);
 
             if(tables.next()) {
-                System.out.println("database responded");
+                System.out.println("Table " + table_name + " already exists.");
             } else {
                 stmt.execute("CREATE TABLE " + table_name + " (\n"
-                        + "bookID VARCHAR(200) NOT NULL,\n"
-                        + "memberID VARCHAR(200) NOT NULL,\n"
+                        + "bookId VARCHAR(200) NOT NULL,\n"
+                        + "memberId VARCHAR(200) NOT NULL,\n"
                         + "issueTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n"
                         + "renew_count INTEGER DEFAULT 0,\n"
-                        + "PRIMARY KEY (bookID, memberID),\n"
-                        + "FOREIGN KEY (bookID) REFERENCES addBook(Bookid),\n"
-                        + "FOREIGN KEY (memberID) REFERENCES addMember(Memberid)\n"
+                        + "PRIMARY KEY (bookId, memberId),\n"
+                        + "FOREIGN KEY (bookId) REFERENCES BOOK(bookId),\n"
+                        + "FOREIGN KEY (memberId) REFERENCES MEMBER(memberId)\n"
                         + ");");
             }
         } catch(SQLException e) {
@@ -136,5 +218,32 @@ public class DatabaseHandler {
     }
 
 
+
+    //__________________________________________________________________________________
+    public boolean execAction(String qu) {
+        try {
+            stmt = conn.createStatement();
+            stmt.execute(qu);
+            return true;
+        } catch (SQLException ex) {
+            System.out.println("Exception at execQuery:dataHandler" + ex.getLocalizedMessage());
+            return false;
+        } finally {
+        }
+    }
+
+
+    public ResultSet execQuery(String query) {
+        ResultSet result;
+        try {
+            stmt = conn.createStatement();
+            result = stmt.executeQuery(query);
+        } catch (SQLException ex) {
+            System.out.println("Exception at execQuery:dataHandler" + ex.getLocalizedMessage());
+            return null;
+        } finally {
+        }
+        return result;
+    }
 }
 
