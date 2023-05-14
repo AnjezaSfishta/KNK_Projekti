@@ -3,13 +3,14 @@ package controllers;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import models.Book;
-import repositories.DatabaseHandler;
+import services.DatabaseHandler;
 
 import java.net.URL;
 import java.sql.ResultSet;
@@ -42,6 +43,15 @@ public class addBookController implements Initializable {
     private AnchorPane root;
 
     private Boolean isInEditMode = Boolean.FALSE;
+    PieChart bookChart;
+    PieChart memberChart;
+
+    private void refreshGraphs(){
+        bookChart.setData(databaseHandler.getBookGraphStatistics());
+        memberChart.setData(databaseHandler.getMemberGraphStatistics());
+
+
+    }
 
     @FXML
     void addBook(ActionEvent event) {

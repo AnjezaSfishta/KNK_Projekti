@@ -1,7 +1,5 @@
 package controllers;
 
-import javafx.beans.Observable;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -19,7 +17,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import models.Book;
-import repositories.DatabaseHandler;
+import services.DatabaseHandler;
 
 
 import java.io.IOException;
@@ -150,7 +148,7 @@ public class listBookController implements Initializable {
             return;
         }
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/addBook.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/addBook.fxml"));
 
             Parent parent = loader.load();
 

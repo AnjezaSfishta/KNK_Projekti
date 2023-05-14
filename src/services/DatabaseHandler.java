@@ -1,9 +1,6 @@
-package repositories;
-import controllers.addBookController;
+package services;
 
 import java.sql.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DatabaseHandler {
     private static final String databaseName = "admin";

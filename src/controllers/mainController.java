@@ -10,17 +10,13 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import repositories.DatabaseHandler;
+import services.DatabaseHandler;
 
-import javax.swing.*;
-import javax.xml.transform.Result;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.ResultSet;
@@ -32,9 +28,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class mainController implements Initializable {
-
+    public Tab bookIssueTab;
     DatabaseHandler databaseHandler;
-
+    PieChart bookChart;
+    PieChart memberChart;
     @FXML
     private TextField bookID;
 
@@ -68,39 +65,78 @@ public class mainController implements Initializable {
     @FXML
     private Text memberPhone;
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        databaseHandler = DatabaseHandler.getInstance();
-
-    }
-
     @FXML
     private ListView<String> issueDataList;
 
     @FXML
     Boolean isReadyForSubmission = false;
+    @FXML
+    private StackPane bookInfoContainer;
+    @FXML
+    private StackPane memberInfoContainer;
+
+
+    public mainController() {
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        databaseHandler = DatabaseHandler.getInstance();
+        initDrawer();
+        initGraphs();
+    }
+    private void initGraphs() {
+        bookChart = new PieChart(databaseHandler.getBookGraphStatistics());
+        bookInfoContainer.getChildren().add(bookChart);
+        memberChart = new PieChart(databaseHandler.getMemberGraphStatistics());
+        memberInfoContainer.getChildren().add(memberChart);
+
+
+    }
+
+    private void initDrawer() {}
+    private void refreshGraphs(){
+        bookChart.setData(databaseHandler.getBookGraphStatistics());
+        memberChart.setData(databaseHandler.getMemberGraphStatistics());
+
+
+    }
+    private void enableDisableGraphs(Boolean status){
+        if(status){
+            bookChart.setOpacity(1);
+            memberChart.setOpacity(1);
+
+        }else{
+            bookChart.setOpacity(0);
+            memberChart.setOpacity(0);
+        }
+
+    }
+
+
 
     @FXML
     private void loadAddBook(ActionEvent event) {
-        loadWindow("/views/addBook.fxml", "Add New Book");
-
+        loadWindow("/View/addBook.fxml", "Add New Book");
+        refreshGraphs();
     }
 
     @FXML
     private void loadAddMember(ActionEvent event) {
-        loadWindow("/views/addMember.fxml", "Add New Member");
+        loadWindow("/View/addMember.fxml", "Add New Member");
+        refreshGraphs();
     }
 
     @FXML
     private void loadBookTable(ActionEvent event) {
-        loadWindow("/views/listBook.fxml", "Book List");
-
+        loadWindow("/View/listBook.fxml", "Book List");
+        refreshGraphs();
     }
 
     @FXML
     private void loadMemberTable(ActionEvent event) {
-        loadWindow("/views/listMember.fxml", "Member List");
-
+        loadWindow("/View/listMember.fxml", "Member List");
+        refreshGraphs();
     }
 
     @FXML
@@ -214,6 +250,7 @@ public class mainController implements Initializable {
                 alert2.setContentText("Issue Operation Cancelled");
                 alert2.showAndWait();
             }
+        clearIssueEntries();
     }
 
     @FXML
@@ -228,6 +265,7 @@ public class mainController implements Initializable {
 
         try{
             while (rs.next()) {
+                enableDisableGraphs(false);
                 String mBookID= id;
                 String mMemberID = rs.getString("memberId");
                 Timestamp mIssueTime = rs.getTimestamp("issueTime");
@@ -273,6 +311,16 @@ public class mainController implements Initializable {
     void clearMember() {
         memberName.setText("");
         memberPhone.setText("");
+    }
+    private void clearIssueEntries() {
+        bookIDInput.clear();
+        memberIDInput.clear();
+        bookName.setText("");
+        bookAuthor.setText("");
+        bookStatus.setText("");
+        memberPhone.setText("");
+        memberName.setText("");
+        enableDisableGraphs(true);
     }
 
     @FXML
@@ -366,20 +414,24 @@ public class mainController implements Initializable {
     }
 
     public void handleMenuAddMember(ActionEvent actionEvent) {
-        loadWindow("/views/addMember.fxml", "Add New Member");
+        loadWindow("/View/addMember.fxml", "Add New Member");
     }
 
     public void handleMenuAddBook(ActionEvent actionEvent) {
-        loadWindow("/views/addBook.fxml", "Add New Book");
+        loadWindow("/View/addBook.fxml", "Add New Book");
     }
 
     public void handleMenuViewBook(ActionEvent actionEvent) {
-        loadWindow("/views/listBook.fxml", "Book List");
+        loadWindow("/View/listBook.fxml", "Book List");
     }
 
     public void handleMenuViewMember(ActionEvent actionEvent) {
-        loadWindow("/views/listMember.fxml", "Member List");
+        loadWindow("/View/listMember.fxml", "Member List");
     }
+    public void handleHelp(ActionEvent actionEvent) {
+        loadWindow("/View/help.fxml", "Help");
+    }
+
 
     public void handleMenuFullScreen(ActionEvent actionEvent) {
 

@@ -5,7 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import repositories.DatabaseHandler;
+import services.DatabaseHandler;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -19,7 +19,7 @@ public class main extends Application {
         Locale currentLocale = Locale.getDefault();
         Locale locale = new Locale("sq_AL");
         ResourceBundle boundle = ResourceBundle.getBundle("/properties/Language", locale);
-        Parent root = FXMLLoader.load(getClass().getResource("/views/main.fxml"), boundle);
+        Parent root = FXMLLoader.load(getClass().getResource("/View/main.fxml"), boundle);
         Scene scene = new Scene(root);
 
         primaryStage.setScene(scene);
