@@ -11,6 +11,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import org.mindrot.jbcrypt.BCrypt;
 import services.DatabaseHandler;
 
 import java.net.URL;
@@ -19,16 +20,17 @@ import java.util.EventObject;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-public class loginController  implements Initializable {
+public class LoginController implements Initializable {
 
-@FXML
+    @FXML
     private PasswordField password;
-@FXML
+    @FXML
     private TextField username;
-@FXML
-private Button login;
-@FXML
-private Button cancel;
+    @FXML
+    private Button login;
+    @FXML
+    private Button cancel;
+    @FXML
     private EventObject event;
     @FXML
     private Label loginMessageLabel;
@@ -39,42 +41,63 @@ private Button cancel;
 
     }
 
-
-
+    // ...
 
     public void loginButtonOnAction(ActionEvent actionEvent) {
-        if(!username.getText().isBlank() && !password.getText().isBlank()) {
-                // loginMessageLabel.setText("You try to login!");
-                DatabaseHandler connectNow = new DatabaseHandler();
-                String verifyLogin = "select count(1) from admin.users where username = '" + username.getText() + "' and password = '" + password.getText() + "'";
-                try {
+        if (!username.getText().isBlank() && !password.getText().isBlank()) {
+            DatabaseHandler connectNow = new DatabaseHandler();
+            String verifyLogin = "SELECT password FROM admin.users WHERE username = '" + username.getText() + "'";
+            try {
+                ResultSet queryResult = connectNow.execQuery(verifyLogin);
 
-                    ResultSet queryResult = connectNow.execQuery(verifyLogin);
+                if (queryResult.next()) {
+                    String hashedPasswordFromDB = queryResult.getString("password");
+                    String enteredPassword = password.getText();
 
-                    while(queryResult.next()) {
-                        if(queryResult.getInt(1) == 1) {
-                            //loginMessageLabel.setText("Welcome!");
-                            Locale currentLocale = Locale.getDefault();
-                            Locale locale = new Locale("sq_AL");
-                            ResourceBundle boundle = ResourceBundle.getBundle("/Properties/Language", locale);
-                            Parent root = FXMLLoader.load(getClass().getResource("/resources/View/main.fxml"),boundle);
-                            Scene scene = new Scene(root);
-                            Stage primaryStage=new Stage();
-                            primaryStage = (Stage) username.getScene().getWindow();
-                            primaryStage.setScene(scene);
-                            primaryStage.setTitle("Library Management System");
-                            primaryStage.show();
-                        } else {
-                            loginMessageLabel.setText("Invalid Login. Please try again.");
-                        }
+                    if (BCrypt.checkpw(enteredPassword, hashedPasswordFromDB)) {
+                        // Successful login
+                        // Add your code here to proceed with the login process
+
+                        // Call the displaySavedCredentials() method
+                        displaySavedCredentials();
+
+                        Locale currentLocale = Locale.getDefault();
+                        Locale locale = new Locale("sq_AL");
+                        ResourceBundle bundle = ResourceBundle.getBundle("/Properties/Language", locale);
+                        Parent root = FXMLLoader.load(getClass().getResource("/resources/View/main.fxml"), bundle);
+                        Scene scene = new Scene(root);
+                        Stage primaryStage = (Stage) username.getScene().getWindow();
+                        primaryStage.setScene(scene);
+                        primaryStage.setTitle("Library Management System");
+                        primaryStage.show();
+                    } else {
+                        loginMessageLabel.setText("Invalid Login. Please try again.");
                     }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                } else {
+                    loginMessageLabel.setText("Invalid Login. Please try again.");
                 }
-            } else {
-                loginMessageLabel.setText("Please enter username and password.");
-
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
+        } else {
+            loginMessageLabel.setText("Please enter username and password.");
+        }
+    }
+
+    public void displaySavedCredentials() {
+        DatabaseHandler connectNow = new DatabaseHandler();
+        String verifyLogin = "SELECT username, password FROM admin.users";
+        try {
+            ResultSet queryResult = connectNow.execQuery(verifyLogin);
+
+            while (queryResult.next()) {
+                String savedUsername = queryResult.getString("username");
+                String savedPassword = queryResult.getString("password");
+                System.out.println("Username: " + savedUsername + ", Password: " + savedPassword);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
 
@@ -82,3 +105,6 @@ private Button cancel;
         System.exit(0);
     }
 }
+
+
+
