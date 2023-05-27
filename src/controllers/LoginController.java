@@ -13,6 +13,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import repository.UserRepository;
 import services.DatabaseConnection;
+import services.DatabaseHandler;
 import services.PasswordHasher;
 
 import java.net.URL;
@@ -41,6 +42,8 @@ public class LoginController implements Initializable {
     }
 
     public void loginButtonOnAction(ActionEvent actionEvent) {
+        DatabaseHandler databaseHandler = DatabaseHandler.getInstance();
+        databaseHandler.setupTables();
         if (!username.getText().isBlank() && !password.getText().isBlank()) {
             DatabaseConnection connectNow = DatabaseConnection.getConnection();
             String verifyLogin = "SELECT salted_password, salt FROM admin.users WHERE username = ?";
@@ -81,10 +84,36 @@ public class LoginController implements Initializable {
                         primaryStage.setScene(scene);
                         primaryStage.setTitle("Library Management System");
                         primaryStage.show();
+
+                        // Display user information in console
+                        String selectUserQuery = "SELECT * FROM admin.users WHERE username = ?";
+                        try {
+                            PreparedStatement selectUserStmt = connection.prepareStatement(selectUserQuery);
+                            selectUserStmt.setString(1, username.getText());
+                            ResultSet userResult = selectUserStmt.executeQuery();
+
+                            // Print user information
+                            while (userResult.next()) {
+
+                                String userName = userResult.getString("username");
+                                String saltedpassword= userResult.getString("salted_password");
+
+                                System.out.println("Username: " + userName);
+                                System.out.println("Salted_Password: " + saltedpassword);
+                                // Add more columns as needed
+
+                                System.out.println("--------------------------------------");
+                            }
+
+                            selectUserStmt.close();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
                     } else {
                         // Invalid password
                         loginMessageLabel.setText("Invalid Login. Please try again.");
                     }
+
                 } else {
                     // User does not exist
                     loginMessageLabel.setText("Invalid Login. Please try again.");
